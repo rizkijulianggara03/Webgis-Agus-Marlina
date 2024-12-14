@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload dan Tampilkan GeoJSON</title>
+    <!-- Import Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; }
+        .upload-container { margin: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="upload-container">
+        <h2>Upload File GeoJSON</h2>
+        <input type="file" id="geojsonFile" accept=".geojson">
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Import Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.0.0/leaflet.ajax.min.js"></script>
+
+    <script>
+        // Inisialisasi peta
+        var map = L.map('map').setView([0, 0], 2); // Koordinat default (0, 0) dan zoom level 2
+
+        // Menambahkan layer peta dasar dari OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Fungsi untuk menangani file GeoJSON yang di-upload
+        document.getElementById('geojsonFile').addEventListener('change', function(event) {
+            var file = event.target.files[0];
+            if (file && file.name.endsWith('.geojson')) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        var geojsonData = JSON.parse(e.target.result);
+                        // Menghapus fitur GeoJSON lama jika ada
+                        if (window.geojsonLayer) {
+                            map.removeLayer(window.geojsonLayer);
+                        }
+                        // Menambahkan data GeoJSON baru ke peta
+                        window.geojsonLayer = L.geoJSON(geojsonData).addTo(map);
+                        map.fitBounds(window.geojsonLayer.getBounds()); // Menyesuaikan peta dengan batas data GeoJSON
+                    } catch (error) {
+                        alert('File GeoJSON tidak valid!');
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Harap upload file dengan ekstensi .geojson');
+            }
+        });
+    </script>
+
+</body>
+</html>
